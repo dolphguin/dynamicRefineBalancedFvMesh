@@ -1,0 +1,17 @@
+#!/bin/bash
+
+WM_PROJECT_DIR=/opt/openfoam5
+source $WM_PROJECT_DIR/etc/bashrc
+echo "version: " && foamVersion
+
+cd ${0%/*} || exit 1    # Run from this directory
+
+# Parse arguments for library compilation
+. $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
+
+wmake  $targetType
+
+#------------------------------------------------------------------------------
+# Allows dynamic load balancing when working with dynamic meshes (not very
+# stable yet...)
+#------------------------------------------------------------------------------
