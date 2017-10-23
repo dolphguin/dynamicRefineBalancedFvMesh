@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.1.x                                 |
+|  \\    /   O peration     | Version:  5.0                                   |
 |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -15,81 +15,131 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dynamicFvMesh   dynamicRefineBalancedFvMesh;
-
-refinementControls
+FIELD1_DICT
 {
-    enableRefinementControl  true;
-    
-    gradients
-    (
-        T    (0.01 10)
-        O2   (1.5   3)
-        CH4  (1.5   3)
-    );
-    
-    curls
-    (
-        U   (0.5 1)
-    );
-    
-    regions
-    (
-        boxToCell
-        {
-            minLevel 1;
-            
-            box (-1 0.001 0.002)(1 0.005 0.003);
-        }
-        
-    );
-}
-
-dynamicRefineFvMeshCoeffs
-{
-    // Extra entries for balancing
-    enableBalancing true;
-    allowableImbalance 0.15;
-
     // How often to refine
     refineInterval  1;
-    
-    // Field to be refinement on (set it to 'internalRefinementField' to use the
-    // refinementControls dictionary entries above)
-    field           internalRefinementField;
-    
-    // Refine field inbetween lower..upper
-    lowerRefineLevel 0.3;
-    upperRefineLevel 1e200;
-    
+
+    // Field to be refinement on
+    field           alpha.water;
+
     // If value < unrefineLevel unrefine
-    unrefineLevel   0.05;
-    
+    // unrefineLevel must be <= lowerRefineLevel
+    unrefineLevel   0.5e-3;
+
+    // Refine field inbetween lower..upper
+    lowerRefineLevel 0.001;
+    upperRefineLevel 0.999;
+
     // Have slower than 2:1 refinement
     nBufferLayers   1;
-    
+
     // Refine cells only up to maxRefinement levels
+    maxRefinement   1;
+}
+
+FIELD2_DICT
+{
+    $FIELD1_DICT;
+    field           p_rgh;
+    unrefineLevel   0.5e-3;
+    lowerRefineLevel 3e3;
+    upperRefineLevel 5e3;
     maxRefinement   2;
-    
+}
+
+ADDITIONAL_ENTRIES
+{
     // Stop refinement if maxCells reached
+    // The total number of cells will be higher than the number given in maxCells,
+    // as the refinement will stop AFTER maxCells is surpassed.
     maxCells        200000;
-    
+
     // Flux field and corresponding velocity field. Fluxes on changed
     // faces get recalculated by interpolating the velocity. Use 'none'
     // on surfaceScalarFields that do not need to be reinterpolated.
     correctFluxes
     (
-        (phi Urel)
-        (phiAbs U)
-        (phiAbs_0 U_0)
+        (phi none)
         (nHatf none)
-        (rho*phi none)
+        (rhoPhi none)
+        (alphaPhi10 none)
         (ghf none)
     );
-    
+
     // Write the refinement level as a volScalarField
     dumpLevel       true;
 }
 
+BALANCING_ENTRIES
+{
+    // Enable dynamic load balancing (parallel jobs)
+    enableBalancing true;
+
+    // Maximal alowable load imbalance among processes (parallel jobs)
+    allowableImbalance 0.1;
+}
+
+BALANCING_REF_CONTROLS
+{
+    // Additional refinement criteria that may be useful anytime
+    enableRefinementControl  false;
+
+    gradients
+    (
+//         alpha.water    (1000.0 10)
+    );
+
+    curls
+    (
+//         U   (0.5 1)
+    );
+
+    regions
+    (
+//         boxToCell
+//         {
+//             minLevel 1;
+//
+//             box (-1 0.001 0.002)(1 0.005 0.003);
+//         }
+    );
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//dynamicFvMesh   staticFvMesh;
+//dynamicFvMesh   dynamicRefineFvMesh;
+dynamicFvMesh   dynamicRefineBalancedFvMesh;
+//dynamicFvMesh   dynamicMultiFieldRefineFvMesh;
+//dynamicFvMesh   dynamicMultiFieldRefineBalancedFvMesh;
+
+dynamicRefineFvMeshCoeffs
+{
+    $FIELD1_DICT;
+    $ADDITIONAL_ENTRIES;
+    $BALANCING_ENTRIES;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dynamicMultiFieldRefineFvMeshCoeffs
+{
+    // NOTE: fields shall be in descending order of "maxRefinement"
+    fields
+    (
+        {$FIELD2_DICT;}
+        {$FIELD1_DICT;}
+    );
+    $ADDITIONAL_ENTRIES;
+    $BALANCING_ENTRIES;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+refinementControls
+{
+    $BALANCING_REF_CONTROLS;
+}
 
 // ************************************************************************* //
