@@ -7,16 +7,13 @@ echo "version: " && foamVersion
 cd ${0%/*} || exit 1    # Run from this directory
 
 # Parse arguments for library compilation
+targetType=libso
 . $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
+set -x
 
-wmake  $targetType dynamicMultiFieldRefineFvMesh
-wmake  $targetType
+wmake $targetType
 
 #------------------------------------------------------------------------------
-# Allows dynamic load balancing when working with dynamic meshes (not very
-# stable yet...)
-#
-# A multi-field version has been merged, which extends the standard dynamic mesh
-# refinement capabilities to allow combining multiple refinement conditions
-# based on different fields.
+# Extends the standard library for dynamic mesh refinement to allow combining
+# multiple refinement conditions based on different fields.
 #------------------------------------------------------------------------------

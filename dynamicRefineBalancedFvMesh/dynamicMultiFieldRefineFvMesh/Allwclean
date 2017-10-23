@@ -5,13 +5,9 @@ source $WM_PROJECT_DIR/etc/bashrc
 echo "version: " && foamVersion
 
 cd ${0%/*} || exit 1    # Run from this directory
+set -x
 
-wclean dynamicMultiFieldRefineFvMesh
-wclean
-
-if [ -d dynamicMultiFieldRefineFvMesh/Make/linux* ]; then
-    rm -r dynamicMultiFieldRefineFvMesh/Make/linux*
-fi
+wclean libso
 
 if [ -d Make/linux* ]; then
     rm -r Make/linux*

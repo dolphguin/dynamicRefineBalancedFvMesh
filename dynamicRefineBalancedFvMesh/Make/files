@@ -1,3 +1,4 @@
 dynamicRefineBalancedFvMesh.C
+dynamicMultiFieldRefineBalancedFvMesh/dynamicMultiFieldRefineBalancedFvMesh.C
 
 LIB = $(FOAM_USER_LIBBIN)/libdynamicRefineBalancedFvMesh
