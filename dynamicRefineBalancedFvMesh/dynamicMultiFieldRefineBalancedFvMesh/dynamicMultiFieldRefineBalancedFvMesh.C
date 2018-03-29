@@ -76,8 +76,8 @@ Foam::Pair<scalar> Foam::dynamicMultiFieldRefineBalancedFvMesh::readRefinementPo
                 IOobject::NO_WRITE,
                 false
             )
-        //).subDict("dynamicMultiFieldRefineFvMeshCoeffs")
-        ).subDict(typeName + "Coeffs")
+        ).subDict("dynamicMultiFieldRefineFvMeshCoeffs")
+        //).subDict(typeName + "Coeffs")
     );
 
     List<dictionary> fieldDicts = List<dictionary>
