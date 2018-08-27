@@ -19,7 +19,7 @@ edited)
 
 # Installation
 Save folder "dynamicRefineBalancedFvMesh" (the one with the "Allwmake/Allwclean"
-scripts inside) into $HOME/OpenFOAM/<username>-6/applications/utilities/ (suggestion) and use
+scripts inside) into $HOME/OpenFOAM/\<username\>-6/applications/utilities/ (suggestion) and use
 "Allwmake" script as usual e.g. "Allwmake -j".
 
 PS: the flag "j" enables multi-thread compilation.
