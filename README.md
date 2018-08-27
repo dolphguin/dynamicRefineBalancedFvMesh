@@ -12,14 +12,14 @@ on different fields.
 Ubuntu-14.04LTS or later
 (not tested for other systems)
 
-OpenFOAM-5.0
+OpenFOAM-6
 (the scripts are prepared to work sourcing the default ubuntu-repository
-version; othewise the line "WM_PROJECT_DIR=/opt/openfoam5" must be accordingly
+version; othewise the line "WM_PROJECT_DIR=/opt/openfoam6" must be accordingly
 edited)
 
 # Installation
 Save folder "dynamicRefineBalancedFvMesh" (the one with the "Allwmake/Allwclean"
-scripts inside) into $HOME/OpenFOAM/<username>-5.0/src/ (suggestion) and use
+scripts inside) into $HOME/OpenFOAM/<username>-6/applications/utilities/ (suggestion) and use
 "Allwmake" script as usual e.g. "Allwmake -j".
 
 PS: the flag "j" enables multi-thread compilation.

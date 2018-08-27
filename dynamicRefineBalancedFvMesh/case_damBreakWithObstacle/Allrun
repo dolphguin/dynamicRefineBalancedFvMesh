@@ -1,6 +1,6 @@
 #!/bin/bash
 
-WM_PROJECT_DIR=/opt/openfoam5
+WM_PROJECT_DIR=/opt/openfoam6
 source $WM_PROJECT_DIR/etc/bashrc
 echo "version: " && foamVersion
 
