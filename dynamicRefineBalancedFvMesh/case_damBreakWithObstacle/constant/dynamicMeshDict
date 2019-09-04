@@ -17,16 +17,16 @@ FoamFile
 
 //example for the tutorial damBreakWithObstacle (interDyMFoam)
 
-FIELD1_DICT
+IntRefFld_DICT
 {
     // How often to refine
     refineInterval  1;
 
     // Field to be refinement on
-    field           alpha.water;
+    field           internalRefinementField;
 
     // If value < unrefineLevel unrefine
-    // unrefineLevel must be <= lowerRefineLevel
+    // unrefineLevel must be <= lowerRefineLevel 
     unrefineLevel   0;//don't edit this value
 
     // If value < unrefineLevel unrefine
@@ -38,17 +38,39 @@ FIELD1_DICT
     nBufferLayers   1;
 
     // Refine cells only up to maxRefinement levels
-    maxRefinement   1;
+    maxRefinement   3; // >= max(regions[i].minLevel)
+}
+
+FIELD1_DICT
+{
+    // How often to refine
+    refineInterval  1;
+
+    // Field to be refinement on
+    field           alpha.water;
+
+    // If value < unrefineLevel unrefine
+    // unrefineLevel must be <= lowerRefineLevel
+    unrefineLevel    1e100; //????
+
+    // Refine field inbetween lower..upper
+    lowerRefineLevel 0.001;
+    upperRefineLevel 0.999;
+
+    // Have slower than 2:1 refinement
+    nBufferLayers   1;
+
+    // Refine cells only up to maxRefinement levels
+    maxRefinement   2;
 }
 
 FIELD2_DICT
 {
     $FIELD1_DICT;
     field           p_rgh;
-    unrefineLevel   0.5e-3;
     lowerRefineLevel 3e3;
     upperRefineLevel 5e3;
-    maxRefinement   2;
+    maxRefinement   1;
 }
 
 ADDITIONAL_ENTRIES
@@ -63,11 +85,12 @@ ADDITIONAL_ENTRIES
     // on surfaceScalarFields that do not need to be reinterpolated.
     correctFluxes
     (
-        (phi none)
-        (nHatf none)
-        (rhoPhi none)
-        (alphaPhi10 none)
-        (ghf none)
+        (phi                none)
+        (nHatf              none)
+        (rhoPhi             none)
+        (alphaPhi10         none)
+        (alphaPhi0.water    none)
+        (ghf                none)
     );
 
     // Write the refinement level as a volScalarField
@@ -109,12 +132,12 @@ REF_CONTROLS
 //dynamicFvMesh   staticFvMesh;
 //dynamicFvMesh   dynamicRefineFvMesh;
 //dynamicFvMesh   dynamicRefineBalancedFvMesh;
-dynamicFvMesh   dynamicMultiFieldRefineFvMesh;
+  dynamicFvMesh   dynamicMultiFieldRefineFvMesh;
 //dynamicFvMesh   dynamicMultiFieldRefineBalancedFvMesh;
 
 /*dynamicRefineFvMeshCoeffs
 {
-    $FIELD1_DICT;
+    $IntRefFld_DICT;
     $ADDITIONAL_ENTRIES;
     $BALANCING_ENTRIES;
 }*/

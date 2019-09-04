@@ -45,9 +45,6 @@ SourceFiles
 #include "decompositionMethod.H"
 #include "fvMeshDistribute.H"
 #include "mapDistributePolyMesh.H"
-#include "HashTable.H"
-#include "topoSetSource.H"
-#include "cellSet.H"
 #include "PtrDictionary.H"
 #include "dictionaryEntry.H"
 
@@ -66,51 +63,38 @@ class dynamicRefineBalancedFvMesh
 {
 
 private:
-        //-
-        volScalarField* internalRefinementFieldPtr_;
-
-        //-
-        HashTable< Pair<scalar> > gradFields_;
-
-        //-
-        HashTable< Pair<scalar> > curlFields_;
-
-        //-
-        PtrList<entry> refinedRegions_;
-
-        //-
-        Switch enableRefinementControl_;
-
-        //-
-        void updateRefinementField();
-
-        //-
-        void readRefinementDict();
-
-        //-
-        Pair<scalar> readRefinementPoints();
 
         //- Disallow default bitwise copy construct
-        dynamicRefineBalancedFvMesh(const dynamicRefineBalancedFvMesh&);
+        dynamicRefineBalancedFvMesh
+        (
+            const dynamicRefineBalancedFvMesh&
+        );
 
         //- Disallow default bitwise assignment
-        void operator=(const dynamicRefineBalancedFvMesh&);
+        void operator=
+        (
+            const dynamicRefineBalancedFvMesh&
+        );
 
         label topParentID(label p);
+
 public:
 
     //- Runtime type information
-    TypeName("dynamicRefineBalancedFvMesh");
+        TypeName("dynamicRefineBalancedFvMesh");
 
 
     // Constructors
 
         //- Construct from IOobject
-        explicit dynamicRefineBalancedFvMesh(const IOobject& io);
+        explicit dynamicRefineBalancedFvMesh
+        (
+            const IOobject& io
+        );
 
 
     //- Destructor
-    virtual ~dynamicRefineBalancedFvMesh();
+        virtual ~dynamicRefineBalancedFvMesh();
 
 
     // Member Functions

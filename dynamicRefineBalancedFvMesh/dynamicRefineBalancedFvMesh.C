@@ -38,8 +38,18 @@ License
 
 namespace Foam
 {
-    defineTypeNameAndDebug(dynamicRefineBalancedFvMesh, 0);
-    addToRunTimeSelectionTable(dynamicFvMesh, dynamicRefineBalancedFvMesh, IOobject);
+    defineTypeNameAndDebug
+    (
+        dynamicRefineBalancedFvMesh,
+        0
+    );
+
+    addToRunTimeSelectionTable
+    (
+        dynamicFvMesh,
+        dynamicRefineBalancedFvMesh,
+        IOobject
+    );
 }
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
@@ -56,236 +66,6 @@ Foam::label Foam::dynamicRefineBalancedFvMesh::topParentID(label p)
     }
 }
 
-Foam::Pair<scalar> Foam::dynamicRefineBalancedFvMesh::readRefinementPoints()
-{
-    dictionary refineDict
-    (
-        IOdictionary
-        (
-            IOobject
-            (
-                "dynamicMeshDict",
-                time().constant(),
-                *this,
-                IOobject::MUST_READ_IF_MODIFIED,
-                IOobject::NO_WRITE,
-                false
-            )
-        ).subDict("dynamicRefineFvMeshCoeffs")
-    );
-
-    return Pair<scalar>
-    (
-        readScalar(refineDict.lookup("unrefineLevel")),
-        readScalar(refineDict.lookup("lowerRefineLevel"))
-    );
-}
-
-void Foam::dynamicRefineBalancedFvMesh::updateRefinementField()
-{
-    Info<< "Calculating internal refinement field" << endl;
-
-    volScalarField& intRefFld = *internalRefinementFieldPtr_;
-
-    // Set the internal refinement field to zero to start with
-    intRefFld = dimensionedScalar("zero",dimless,0.0);
-
-    // Get the cell level field from dynamicRefineFvMesh
-    const labelList& cellLevel = meshCutter().cellLevel();
-
-    // Read the points at which refinement and unrefinement occur from the
-    // dynamicMeshDict entries
-    Pair<scalar> refinePoints = readRefinementPoints();
-
-    // First gradients
-    List<word> gradFieldNames = gradFields_.toc();
-
-    Field<scalar> cubeRtV = Foam::pow(this->V(),1.0/3.0);
-    Field<scalar> refFld(nCells(),0.0);
-
-    forAll(gradFieldNames, i)
-    {
-        word fldName = gradFieldNames[i];
-        scalar wgt = gradFields_[fldName].first();
-        label maxLevel = static_cast<label>(gradFields_[fldName].second()+0.5);
-
-        const volScalarField& fld = this->lookupObject<volScalarField>(fldName);
-
-        refFld = wgt * mag(fvc::grad(fld)) * cubeRtV;
-
-        // Limit the value of refFld based on its max level
-        forAll(refFld, cellI)
-        {
-            if( cellLevel[cellI] >= maxLevel )
-            {
-                refFld[cellI] = min
-                (
-                    refFld[cellI],
-                    0.5*(refinePoints.first() + refinePoints.second())
-                );
-            }
-        }
-
-        intRefFld.primitiveFieldRef() = max    //intRefFld.internalField() = max
-        (
-            intRefFld.primitiveField(),     //intRefFld.internalField(),
-            refFld
-        );
-    }
-
-    // Then curls
-    List<word> curlFieldNames = curlFields_.toc();
-
-
-    forAll(curlFieldNames, i)
-    {
-        word fldName = curlFieldNames[i];
-        scalar wgt = curlFields_[fldName].first();
-        label maxLevel = static_cast<label>(curlFields_[fldName].second()+0.5);
-
-        const volVectorField& fld = this->lookupObject<volVectorField>(fldName);
-
-        refFld = wgt * mag(fvc::curl(fld)) * cubeRtV;
-
-        // Limit the value of refFld based on its max level
-        forAll(refFld, cellI)
-        {
-            if( cellLevel[cellI] >= maxLevel )
-            {
-                refFld[cellI] = min
-                (
-                    refFld[cellI],
-                    0.5*(refinePoints.first() + refinePoints.second())
-                );
-            }
-        }
-
-        intRefFld.primitiveFieldRef() = max //intRefFld.internalField() = max
-        (
-            intRefFld.primitiveField(),     //intRefFld.internalField(),
-            refFld
-        );
-    }
-
-    // The set refinement physical regions (force the mesh to stay refined
-    // near key features)
-    forAll(refinedRegions_, regionI)
-    {
-        const entry& region = refinedRegions_[regionI];
-
-        autoPtr<topoSetSource> source =
-            topoSetSource::New(region.keyword(), *this, region.dict());
-
-        refFld *= 0.0;
-
-        cellSet selectedCellSet
-        (
-            *this,
-            "cellSet",
-            nCells()/10+1 //estimate
-        );
-
-        source->applyToSet
-        (
-            topoSetSource::NEW,
-            selectedCellSet
-        );
-
-        const labelList cells = selectedCellSet.toc();
-
-        label minLevel = readLabel(region.dict().lookup("minLevel"));
-
-        forAll(cells, i)
-        {
-            const label& cellI = cells[i];
-
-            if( cellLevel[cellI] < minLevel ) //force refinement
-            {
-                refFld[cellI] = refinePoints.second() + 1.0;
-            }
-            else if( cellLevel[cellI] == minLevel ) // keep from coarsening
-            {
-                refFld[cellI] = 0.5*(refinePoints.first() + refinePoints.second());
-            }
-            // else do nothing
-        }
-
-        intRefFld.primitiveFieldRef() = max //intRefFld.internalField() = max
-        (
-            intRefFld.primitiveField(),     //intRefFld.internalField(),
-            refFld
-        );
-    }
-
-    intRefFld.correctBoundaryConditions();
-
-    Info<<"Min,max refinement field = " << Foam::min(intRefFld).value() << ", "
-        << Foam::max(intRefFld).value() << endl;
-
-}
-
-void Foam::dynamicRefineBalancedFvMesh::readRefinementDict()
-{
-    dictionary dynamicMeshDict
-    (
-        IOdictionary
-        (
-            IOobject
-            (
-                "dynamicMeshDict",
-                time().constant(),
-                *this,
-                IOobject::MUST_READ_IF_MODIFIED,
-                IOobject::NO_WRITE,
-                false
-            )
-        )
-    );
-
-    if( dynamicMeshDict.isDict("refinementControls") )
-    {
-        dictionary refineControlDict =
-            dynamicMeshDict.subDict("refinementControls");
-
-        enableRefinementControl_ =
-            Switch(refineControlDict.lookup("enableRefinementControl"));
-
-        if( enableRefinementControl_ )
-        {
-            // Overwrite field name entry in dynamicRefineFvMeshCoeffs?
-            // For now you just have to be smart and enter
-            // 'internalRefinementField' for the field name manually
-
-            // Read HashTable of gradient-refinement scalars
-            if( refineControlDict.found("gradients") )
-            {
-                gradFields_ = HashTable< Pair<scalar> >
-                (
-                    refineControlDict.lookup("gradients")
-                );
-            }
-
-            // Read HashTable of curl-refinement vectors
-            if( refineControlDict.found("curls") )
-            {
-                curlFields_ = HashTable< Pair<scalar> >
-                (
-                    refineControlDict.lookup("curls")
-                );
-            }
-
-            // Read refinement regions
-            if( refineControlDict.found("regions") )
-            {
-                refinedRegions_ = PtrList<entry>
-                (
-                    refineControlDict.lookup("regions")
-                );
-            }
-        }
-    }
-}
-
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::dynamicRefineBalancedFvMesh::dynamicRefineBalancedFvMesh
@@ -293,32 +73,8 @@ Foam::dynamicRefineBalancedFvMesh::dynamicRefineBalancedFvMesh
     const IOobject& io
 )
 :
-    dynamicRefineFvMesh(io),
-    internalRefinementFieldPtr_(NULL),
-    gradFields_(),
-    curlFields_(),
-    refinedRegions_(),
-    enableRefinementControl_(false)
-{
-    readRefinementDict();
-
-    if( enableRefinementControl_ )
-    {
-        internalRefinementFieldPtr_ = new volScalarField
-        (
-            IOobject
-            (
-                "internalRefinementField",
-                this->time().timeName(),
-                *this,
-                IOobject::NO_READ,
-                IOobject::AUTO_WRITE
-            ),
-            *this,
-            dimensionedScalar("zero", dimless, 0.0)
-        );
-    }
-}
+    dynamicRefineFvMesh(io)
+{}
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
@@ -331,16 +87,9 @@ Foam::dynamicRefineBalancedFvMesh::~dynamicRefineBalancedFvMesh()
 
 bool Foam::dynamicRefineBalancedFvMesh::update()
 {
-    //Part 0 - Update internally calculated refinement field
-    readRefinementDict();
-
-    if( enableRefinementControl_ )
-    {
-        updateRefinementField();
-    }
-
     //Part 1 - Call normal update from dynamicRefineFvMesh
-    bool hasChanged = dynamicRefineFvMesh::update();
+    bool hasChanged =
+        dynamicRefineFvMesh::update();
 
     // Part 2 - Load Balancing
     dictionary refineDict
@@ -359,7 +108,8 @@ bool Foam::dynamicRefineBalancedFvMesh::update()
         ).subDict("dynamicRefineFvMeshCoeffs")
     );
 
-    Switch enableBalancing = refineDict.lookup("enableBalancing");
+    Switch enableBalancing =
+        refineDict.lookup("enableBalancing");
 
     if ( Pstream::parRun() && hasChanged )
     {
@@ -385,15 +135,21 @@ bool Foam::dynamicRefineBalancedFvMesh::update()
             Info<< "Re-balancing dynamically refined mesh" << endl;
 
             const labelIOList& cellLevel = meshCutter().cellLevel();
-            Map<label> coarseIDmap(100);
-            labelList uniqueIndex(nCells(),0);
+
+            Map<label> coarseIDmap(100);  //map maps label to labels. So entry should be like, 1 label to 1 label
+                                          //construct with initial size 100.
+
+            labelList uniqueIndex(nCells(),0); //unique index, has space for 1 entry per cell.
 
             label nCoarse = 0;
 
+            //Loop over all cells:
             forAll(cells(), cellI)
             {
+                //If cell was refined:
                 if( cellLevel[cellI] > 0 )
                 {
+                    //get unique index for this cell, add to number of cells its top parrent cell ID:
                     uniqueIndex[cellI] = nCells() + topParentID
                     (
                         meshCutter().history().parentIndex(cellI)
@@ -401,8 +157,11 @@ bool Foam::dynamicRefineBalancedFvMesh::update()
                 }
                 else
                 {
+                    //If the cell was not refined, give it its index:
                     uniqueIndex[cellI] = cellI;
                 }
+
+                //Insert coarse cell ID into the map:
 
                 if( coarseIDmap.insert(uniqueIndex[cellI], nCoarse) )
                 {
@@ -418,6 +177,7 @@ bool Foam::dynamicRefineBalancedFvMesh::update()
 
             forAll(uniqueIndex, cellI)
             {
+                //Map from current cell to its coarse cell:
                 localIndex[cellI] = coarseIDmap[uniqueIndex[cellI]];
 
                 // If 2D refinement (quadtree) is ever implemented, this '3'
@@ -425,6 +185,7 @@ bool Foam::dynamicRefineBalancedFvMesh::update()
                 // dimensions.
                 label w = (1 << (3*cellLevel[cellI]));
 
+                //Add one weight per cell in its coarse cell:
                 coarseWeights[localIndex[cellI]] += 1.0;
                 coarsePoints[localIndex[cellI]] += C()[cellI]/w;
             }
@@ -450,6 +211,7 @@ bool Foam::dynamicRefineBalancedFvMesh::update()
                 )
             );
 
+            //Decompose, get the list to witch processors should each cell go
             labelList finalDecomp = decomposer().decompose
             (
                 *this,
@@ -460,9 +222,11 @@ bool Foam::dynamicRefineBalancedFvMesh::update()
 
             scalar tolDim = globalMeshData::matchTol_ * bounds().mag();
 
-
+            //Construct distributer:
             fvMeshDistribute distributor(*this, tolDim);
 
+            //Distribute mesh, after this operation mesh on proc. changes
+            //according to decompositionMethod indexing:
             autoPtr<mapDistributePolyMesh> map =
                   distributor.distribute(finalDecomp);
 

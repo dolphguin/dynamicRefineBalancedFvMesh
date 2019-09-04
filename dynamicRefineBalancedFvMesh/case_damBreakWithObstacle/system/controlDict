@@ -54,6 +54,8 @@ maxDeltaT       1;
 libs
 (
     "libdynamicRefineBalancedFvMesh.so"
+    "libdynamicMultiFieldRefineBalancedFvMesh.so"
+    "libdynamicMultiFieldRefineFvMesh.so"
 );
 
 // ************************************************************************* //
