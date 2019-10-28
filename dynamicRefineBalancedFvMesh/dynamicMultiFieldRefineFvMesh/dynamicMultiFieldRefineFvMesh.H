@@ -87,6 +87,13 @@ SourceFiles
 #include "PackedBoolList.H"
 #include "Switch.H"
 
+//which of the following is necessary
+#include "HashTable.H"
+#include "topoSetSource.H"
+#include "cellSet.H"
+#include "PtrDictionary.H"
+#include "dictionaryEntry.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -213,6 +220,30 @@ protected:
             ) const;
 
 private:
+
+        //-
+        volScalarField* internalRefinementFieldPtr_;
+
+        //-
+        HashTable< Pair<scalar> > gradFields_;
+
+        //-
+        HashTable< Pair<scalar> > curlFields_;
+
+        //-
+        PtrList<entry> refinedRegions_;
+
+        //-
+        Switch enableRefinementControl_;
+
+        //-
+        void updateRefinementField();
+
+        //-
+        void readRefinementDict();
+
+        //-
+        Pair<scalar> readRefinementPoints();
 
         //- Disallow default bitwise copy construct
         dynamicMultiFieldRefineFvMesh(const dynamicMultiFieldRefineFvMesh&);
