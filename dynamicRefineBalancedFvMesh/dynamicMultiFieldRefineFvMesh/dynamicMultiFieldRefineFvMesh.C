@@ -212,7 +212,6 @@ void Foam::dynamicMultiFieldRefineFvMesh::readDict()
     dumpLevel_ = Switch(refineDict.lookup("dumpLevel"));
 }
 
-
 void Foam::dynamicMultiFieldRefineFvMesh::readRefinementDict()
 {
     dictionary dynamicMeshDict
@@ -231,21 +230,21 @@ void Foam::dynamicMultiFieldRefineFvMesh::readRefinementDict()
         )
     );
 
-     if( dynamicMeshDict.isDict("refinementControls") )
+    if( dynamicMeshDict.isDict("refinementControls") )
     {
         dictionary refineControlDict =
             dynamicMeshDict.subDict("refinementControls");
 
-         enableRefinementControl_ =
+        enableRefinementControl_ =
             Switch(refineControlDict.lookup("enableRefinementControl"));
 
-         if( enableRefinementControl_ )
+        if( enableRefinementControl_ )
         {
             // Overwrite field name entry in dynamicRefineFvMeshCoeffs?
             // For now you just have to be smart and enter
             // 'internalRefinementField' for the field name manually
 
-             // Read HashTable of gradient-refinement scalars
+            // Read HashTable of gradient-refinement scalars
             if( refineControlDict.found("gradients") )
             {
                 gradFields_ = HashTable< Pair<scalar> >
@@ -254,7 +253,7 @@ void Foam::dynamicMultiFieldRefineFvMesh::readRefinementDict()
                 );
             }
 
-             // Read HashTable of curl-refinement vectors
+            // Read HashTable of curl-refinement vectors
             if( refineControlDict.found("curls") )
             {
                 curlFields_ = HashTable< Pair<scalar> >
@@ -263,7 +262,7 @@ void Foam::dynamicMultiFieldRefineFvMesh::readRefinementDict()
                 );
             }
 
-             // Read refinement regions
+            // Read refinement regions
             if( refineControlDict.found("regions") )
             {
                 refinedRegions_ = PtrList<entry>
@@ -274,7 +273,6 @@ void Foam::dynamicMultiFieldRefineFvMesh::readRefinementDict()
         }
     }
 }
-
 
 /*Foam::Pair<scalar>
 Foam::dynamicMultiFieldRefineFvMesh::readRefinementPoints()
@@ -295,48 +293,47 @@ Foam::dynamicMultiFieldRefineFvMesh::readRefinementPoints()
         ).optionalSubDict(typeName + "Coeffs")//.subDict("fields")//.subDict("dynamicRefineFvMeshCoeffs")
     );
 
-     return Pair<scalar>
+    return Pair<scalar>
     (
         readScalar(refineDict.lookup("unrefineLevel")),
         readScalar(refineDict.lookup("lowerRefineLevel"))
     );
 }*/
 
-
 void Foam::dynamicMultiFieldRefineFvMesh::updateRefinementField()
 {
     Info<< "Calculating internal refinement field" << endl;
 
-     volScalarField& intRefFld = *internalRefinementFieldPtr_;
+    volScalarField& intRefFld = *internalRefinementFieldPtr_;
 
-     // Set the internal refinement field to zero to start with
+    // Set the internal refinement field to zero to start with
     intRefFld = dimensionedScalar("zero",dimless,0.0);
 
-     // Get the cell level field from dynamicRefineFvMesh
+    // Get the cell level field from dynamicRefineFvMesh
     const labelList& cellLevel = meshCutter().cellLevel();
 
-     // Read the points at which refinement and unrefinement occur from the
+    // Read the points at which refinement and unrefinement occur from the
     // dynamicMeshDict entries
     Pair<scalar> refinePoints (0.1, 1.0);
 
     /*
-     // First gradients
+    // First gradients
     List<word> gradFieldNames = gradFields_.toc();
 
-     Field<scalar> cubeRtV = Foam::pow(this->V(),1.0/3.0);
+    Field<scalar> cubeRtV = Foam::pow(this->V(),1.0/3.0);
     Field<scalar> refFld(nCells(),0.0);
 
-     forAll(gradFieldNames, i)
+    forAll(gradFieldNames, i)
     {
         word fldName = gradFieldNames[i];
         scalar wgt = gradFields_[fldName].first();
         label maxLevel = static_cast<label>(gradFields_[fldName].second()+0.5);
 
-         const volScalarField& fld = this->lookupObject<volScalarField>(fldName);
+        const volScalarField& fld = this->lookupObject<volScalarField>(fldName);
 
-         refFld = wgt * mag(fvc::grad(fld)) * cubeRtV;
+        refFld = wgt * mag(fvc::grad(fld)) * cubeRtV;
 
-         // Limit the value of refFld based on its max level
+        // Limit the value of refFld based on its max level
         forAll(refFld, cellI)
         {
             if( cellLevel[cellI] >= maxLevel )
@@ -349,28 +346,28 @@ void Foam::dynamicMultiFieldRefineFvMesh::updateRefinementField()
             }
         }
 
-         intRefFld.primitiveFieldRef() = max    //intRefFld.internalField() = max
+        intRefFld.primitiveFieldRef() = max    //intRefFld.internalField() = max
         (
             intRefFld.primitiveField(),     //intRefFld.internalField(),
             refFld
         );
     }
 
-     // Then curls
+    // Then curls
     List<word> curlFieldNames = curlFields_.toc();
 
 
-     forAll(curlFieldNames, i)
+    forAll(curlFieldNames, i)
     {
         word fldName = curlFieldNames[i];
         scalar wgt = curlFields_[fldName].first();
         label maxLevel = static_cast<label>(curlFields_[fldName].second()+0.5);
 
-         const volVectorField& fld = this->lookupObject<volVectorField>(fldName);
+        const volVectorField& fld = this->lookupObject<volVectorField>(fldName);
 
-         refFld = wgt * mag(fvc::curl(fld)) * cubeRtV;
+        refFld = wgt * mag(fvc::curl(fld)) * cubeRtV;
 
-         // Limit the value of refFld based on its max level
+        // Limit the value of refFld based on its max level
         forAll(refFld, cellI)
         {
             if( cellLevel[cellI] >= maxLevel )
@@ -383,7 +380,7 @@ void Foam::dynamicMultiFieldRefineFvMesh::updateRefinementField()
             }
         }
 
-         intRefFld.primitiveFieldRef() = max //intRefFld.internalField() = max
+        intRefFld.primitiveFieldRef() = max //intRefFld.internalField() = max
         (
             intRefFld.primitiveField(),     //intRefFld.internalField(),
             refFld
@@ -391,7 +388,7 @@ void Foam::dynamicMultiFieldRefineFvMesh::updateRefinementField()
     }
     */
 
-     // The set refinement physical regions (force the mesh to stay refined
+    // The set refinement physical regions (force the mesh to stay refined
     // near key features)
     forAll(refinedRegions_, regionI)
     {
@@ -399,30 +396,30 @@ void Foam::dynamicMultiFieldRefineFvMesh::updateRefinementField()
 
         Info << "regionI: " << regionI <<endl;
 
-         autoPtr<topoSetSource> source =
+        autoPtr<topoSetSource> source =
             topoSetSource::New(region.keyword(), *this, region.dict());
 
-         Field<scalar> refFld(nCells(),0.0); //Line needed if gradient and curl are commented
-         refFld *= 0.0;
+        Field<scalar> refFld(nCells(),0.0); //Line needed if gradient and curl are commented
+        refFld *= 0.0;
 
-         cellSet selectedCellSet
+        cellSet selectedCellSet
         (
             *this,
             "cellSet",
             nCells()/10+1 //estimate
         );
 
-         source->applyToSet
+        source->applyToSet
         (
             topoSetSource::NEW,
             selectedCellSet
         );
 
-         const labelList cells = selectedCellSet.toc();
+        const labelList cells = selectedCellSet.toc();
 
-         label minLevel = readLabel(region.dict().lookup("minLevel"));
+        label minLevel = readLabel(region.dict().lookup("minLevel"));
 
-         forAll(cells, i)
+        forAll(cells, i)
         {
             const label& cellI = cells[i];
 
@@ -431,7 +428,7 @@ void Foam::dynamicMultiFieldRefineFvMesh::updateRefinementField()
             //lowerRefineLevel = 1;
             //upperRefineLevel = 2;
 
-             if( cellLevel[cellI] < minLevel ) //force refinement
+            if( cellLevel[cellI] < minLevel ) //force refinement
             {
                 refFld[cellI] = 1.5;// Between 1 and 2
             }
@@ -445,7 +442,7 @@ void Foam::dynamicMultiFieldRefineFvMesh::updateRefinementField()
              }
         }
 
-         intRefFld.primitiveFieldRef() = max
+        intRefFld.primitiveFieldRef() = max
         (
             intRefFld.primitiveField(),
             refFld
@@ -453,10 +450,9 @@ void Foam::dynamicMultiFieldRefineFvMesh::updateRefinementField()
     }
     intRefFld.correctBoundaryConditions();
 
-     Info<<"Min,max refinement field = " << Foam::min(intRefFld).value() << ", "
+    Info<<"Min,max refinement field = " << Foam::min(intRefFld).value() << ", "
         << Foam::max(intRefFld).value() << endl;
 }
-
 
 // Refines cells, maps fields and recalculates (an approximate) flux
 Foam::autoPtr<Foam::mapPolyMesh>
@@ -1405,7 +1401,6 @@ Foam::dynamicMultiFieldRefineFvMesh::dynamicMultiFieldRefineFvMesh
         );
     }
 
-
     // Read static part of dictionary
     readDict();
 
@@ -1610,7 +1605,7 @@ bool Foam::dynamicMultiFieldRefineFvMesh::update()
     //Update internally calculated refinement field
     readRefinementDict();
 
-     if( enableRefinementControl_ )
+    if( enableRefinementControl_ )
     {
        updateRefinementField();
     }
