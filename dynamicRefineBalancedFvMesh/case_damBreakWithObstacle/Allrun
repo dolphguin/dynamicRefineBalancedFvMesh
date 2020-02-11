@@ -1,6 +1,6 @@
 #!/bin/bash
 
-WM_PROJECT_DIR=/opt/openfoam6
+WM_PROJECT_DIR=/opt/openfoam7
 source $WM_PROJECT_DIR/etc/bashrc
 echo "version: " && foamVersion
 
@@ -40,9 +40,9 @@ cd ${0%/*} || exit 1    # Run from this directory
 
 cp -r 0.orig 0 > /dev/null 2>&1
 runApplication blockMesh
-#runApplication setSet -batch createObstacle.setSet
-#runApplication topoSet
-#runApplication subsetMesh -overwrite c0 -patch walls
+runApplication setSet -batch createObstacle.setSet
+runApplication topoSet
+runApplication subsetMesh -overwrite c0 -patch walls
 runApplication setFields
 
 if [ "$np" -lt 2 ]; then # Single-process jobs

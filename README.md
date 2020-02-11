@@ -14,12 +14,12 @@ Ubuntu-14.04LTS or later
 
 OpenFOAM-6
 (the scripts are prepared to work sourcing the default ubuntu-repository
-version; othewise the line "WM_PROJECT_DIR=/opt/openfoam6" must be accordingly
+version; othewise the line "WM_PROJECT_DIR=/opt/openfoam7" must be accordingly
 edited)
 
 # Installation
 Save folder "dynamicRefineBalancedFvMesh" (the one with the "Allwmake/Allwclean"
-scripts inside) into $HOME/OpenFOAM/\<username\>-6/applications/utilities/ (suggestion) and use
+scripts inside) into $HOME/OpenFOAM/\<username\>-7/applications/utilities/ (suggestion) and use
 "Allwmake" script as usual e.g. "Allwmake -j".
 
 PS: the flag "j" enables multi-thread compilation.
@@ -31,7 +31,9 @@ file "system/controlDict":
 [...]
 libs
 (
-    "libdynamicRefineBalancedFvMesh.so"
+    "libdynamicRefineBalancedFvMesh-of7.so"
+    "libdynamicMultiFieldRefineFvMesh-of7.so"
+    "libdynamicMultiFieldRefineBalancedFvMesh-of7.so"
 );
 [...]
 
@@ -54,6 +56,8 @@ regions that were present in the original implementation from Tyler V. (see
 https://github.com/tgvoskuilen/meshBalancing) were kept by the moment, because
 they may become useful in some cases. But not enough attention has been paid to
 make them compatible witht the multi-field option...
+EDIT: actually, only the regions have been kept, though they are by the moment
+incompatible with the balancing option.
 
 The current implementation lacks support for lagrangian particles.
 
@@ -73,6 +77,11 @@ Check for potential GNU-GPLv3 issues (are file headers OK?)
 Rodrigo Gómez Vázquez
 Current development.
 (https://tiss.tuwien.ac.at/person/64973.html)
+
+Francisco Javier Codina Álvarez
+Initial attempt to harmonize region-based refinement with the previously implemented
+multi-field refinement.
+(-)
 
 Robert Feichtenschlager
 Multi-field functionality.

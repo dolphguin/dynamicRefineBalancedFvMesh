@@ -77,6 +77,7 @@ private:
         );
 
         label topParentID(label p);
+
 public:
 
     //- Runtime type information

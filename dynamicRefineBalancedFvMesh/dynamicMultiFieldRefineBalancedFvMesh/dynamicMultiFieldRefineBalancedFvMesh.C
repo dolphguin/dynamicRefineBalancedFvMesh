@@ -89,7 +89,7 @@ Foam::dynamicMultiFieldRefineBalancedFvMesh::~dynamicMultiFieldRefineBalancedFvM
 
 bool Foam::dynamicMultiFieldRefineBalancedFvMesh::update()
 {
-   //Part 1 - Call normal update from dynamicMultiFieldRefineFvMesh
+    //Part 1 - Call normal update from dynamicMultiFieldRefineFvMesh
     bool hasChanged =
         dynamicMultiFieldRefineFvMesh::update();
 

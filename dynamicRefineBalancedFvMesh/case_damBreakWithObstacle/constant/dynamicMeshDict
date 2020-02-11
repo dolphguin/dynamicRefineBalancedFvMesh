@@ -17,29 +17,15 @@ FoamFile
 
 //example for the tutorial damBreakWithObstacle (interDyMFoam)
 
-IntRefFld_DICT
-{
-    // How often to refine
-    refineInterval  1;
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    // Field to be refinement on
-    field           internalRefinementField;
+//dynamicFvMesh   staticFvMesh;
+//dynamicFvMesh   dynamicRefineFvMesh;
+//dynamicFvMesh   dynamicRefineBalancedFvMesh;
+//dynamicFvMesh   dynamicMultiFieldRefineFvMesh;
+  dynamicFvMesh   dynamicMultiFieldRefineBalancedFvMesh;
 
-    // If value < unrefineLevel unrefine
-    // unrefineLevel must be <= lowerRefineLevel 
-    unrefineLevel   0;//don't edit this value
-
-    // If value < unrefineLevel unrefine
-    // unrefineLevel must be <= lowerRefineLevel
-    lowerRefineLevel 1;//don't edit this value
-    upperRefineLevel 2;//don't edit this value
-
-    // Have slower than 2:1 refinement
-    nBufferLayers   1;
-
-    // Refine cells only up to maxRefinement levels
-    maxRefinement   3; // >= max(regions[i].minLevel)
-}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 FIELD1_DICT
 {
@@ -54,8 +40,8 @@ FIELD1_DICT
     unrefineLevel    1e100; //????
 
     // Refine field inbetween lower..upper
-    lowerRefineLevel 0.001;
-    upperRefineLevel 0.999;
+    lowerRefineLevel 0.01;
+    upperRefineLevel 0.99;
 
     // Have slower than 2:1 refinement
     nBufferLayers   1;
@@ -72,6 +58,8 @@ FIELD2_DICT
     upperRefineLevel 5e3;
     maxRefinement   1;
 }
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 ADDITIONAL_ENTRIES
 {
@@ -97,19 +85,26 @@ ADDITIONAL_ENTRIES
     dumpLevel       true;
 }
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
 BALANCING_ENTRIES
 {
     // Enable dynamic load balancing (parallel jobs)
+    // NOTE: incompatible with enableRefinementControl=true
     enableBalancing true;
 
     // Maximal alowable load imbalance among processes (parallel jobs)
     allowableImbalance 0.1;
 }
 
-REF_CONTROLS
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+refinementControls
 {
     // Additional refinement criteria that may be useful anytime
-    enableRefinementControl  true;
+    // NOTE: Only used by the ...MultiFieldRefine... versions
+    // NOTE: incompatible with load balancing
+    enableRefinementControl  false;
 
     regions
     (
@@ -127,20 +122,39 @@ REF_CONTROLS
     );
 }
 
+//NOTE: this field is only necessary when enableRefinementControl is true
+IntRefFld_DICT
+{
+    // How often to refine
+    refineInterval  1;
+
+    // Field to be refinement on
+    field           internalRefinementField;
+
+    // If value < unrefineLevel unrefine
+    // unrefineLevel must be <= lowerRefineLevel 
+    unrefineLevel   0.01;//don't edit this value
+
+    // If value < unrefineLevel unrefine
+    // unrefineLevel must be <= lowerRefineLevel
+    lowerRefineLevel 1;//don't edit this value
+    upperRefineLevel 2;//don't edit this value
+
+    // Have slower than 2:1 refinement
+    nBufferLayers   1;
+
+    // Refine cells only up to maxRefinement levels
+    maxRefinement   2; // >= max(regions[i].minLevel)
+}
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-//dynamicFvMesh   staticFvMesh;
-//dynamicFvMesh   dynamicRefineFvMesh;
-//dynamicFvMesh   dynamicRefineBalancedFvMesh;
-  dynamicFvMesh   dynamicMultiFieldRefineFvMesh;
-//dynamicFvMesh   dynamicMultiFieldRefineBalancedFvMesh;
-
-/*dynamicRefineFvMeshCoeffs
+dynamicRefineFvMeshCoeffs
 {
-    $IntRefFld_DICT;
+    $FIELD1_DICT;
     $ADDITIONAL_ENTRIES;
     $BALANCING_ENTRIES;
-}*/
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -151,18 +165,10 @@ dynamicMultiFieldRefineFvMeshCoeffs
     (
         {$FIELD1_DICT;}
         //{$FIELD2_DICT;}
-        {$IntRefFld_DICT;}
+        //{$IntRefFld_DICT;} //NOTE: activate this entry only if enableRefinementControl is true
     );
     $ADDITIONAL_ENTRIES;
     $BALANCING_ENTRIES;
 }
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-refinementControls
-{
-    $REF_CONTROLS;
-}
-
 
 // ************************************************************************* //

@@ -1377,9 +1377,6 @@ Foam::dynamicMultiFieldRefineFvMesh::dynamicMultiFieldRefineFvMesh
     nRefinementIterations_(0),
     protectedCell_(nCells(), 0),
     internalRefinementFieldPtr_(nullptr),
-    gradFields_(),
-    curlFields_(),
-    refinedRegions_(),
     enableRefinementControl_(false)
 {
     readRefinementDict();
@@ -1583,7 +1580,7 @@ Foam::dynamicMultiFieldRefineFvMesh::~dynamicMultiFieldRefineFvMesh()
 
 bool Foam::dynamicMultiFieldRefineFvMesh::update()
 {
-    // Re-read dictionary. Choosen since usually -small so trivial amount
+    // Re-read dictionary. Chosen since usually -small so trivial amount
     // of time compared to actual refinement. Also very useful to be able
     // to modify on-the-fly.
     dictionary refineDict

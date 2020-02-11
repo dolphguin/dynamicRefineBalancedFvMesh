@@ -12,7 +12,7 @@ EXE_INC = \
 
 LIB_LIBS = \
     -L$(FOAM_USER_LIBBIN) \
-    -ldynamicMultiFieldRefineFvMesh \
+    -ldynamicMultiFieldRefineFvMesh-of7 \
     -ldynamicFvMesh \
     -ltriSurface \
     -lmeshTools \
