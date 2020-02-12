@@ -98,6 +98,23 @@ BALANCING_ENTRIES
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// stuff for dynamicRefineFvMesh
+
+$FIELD1_DICT;
+$ADDITIONAL_ENTRIES;
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// stuff for dynamicRefineBalancedFvMesh
+
+dynamicRefineFvMeshCoeffs
+{
+    $FIELD1_DICT;
+    $ADDITIONAL_ENTRIES;
+    $BALANCING_ENTRIES;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// stuff for dynamicMultiFieldRefineFvMesh & dynamicMultiFieldRefineBalancedFvMesh
 
 refinementControls
 {
@@ -146,17 +163,6 @@ IntRefFld_DICT
     // Refine cells only up to maxRefinement levels
     maxRefinement   2; // >= max(regions[i].minLevel)
 }
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-dynamicRefineFvMeshCoeffs
-{
-    $FIELD1_DICT;
-    $ADDITIONAL_ENTRIES;
-    $BALANCING_ENTRIES;
-}
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 dynamicMultiFieldRefineFvMeshCoeffs
 {
