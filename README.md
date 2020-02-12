@@ -32,7 +32,6 @@ libs
 (
     "libdynamicRefineBalancedFvMesh-of7.so"
     "libdynamicMultiFieldRefineFvMesh-of7.so"
-    "libdynamicMultiFieldRefineBalancedFvMesh-of7.so"
 );
 [...]
 
